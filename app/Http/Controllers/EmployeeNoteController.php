@@ -263,10 +263,7 @@ public function generatePDF(Employee $employee, EmployeeNote $employeeNote)
         ['مكان الازدياد:', $employee->lieu_naissance],
         ['عدد الأطفال:', $employee->nombre_enfants],
         ['تاريخ المفعول:', $employee->date_effet ? date('Y-m-d', strtotime($employee->date_effet)) : ''],
-     
-
-       
-
+    
     ];
 
     $lineHeight = 4.5; // Reduced line height
@@ -368,11 +365,12 @@ public function generatePDF(Employee $employee, EmployeeNote $employeeNote)
     
     // Define grades and their score ranges
     $grades = [
-        'ممتاز' => [18, 20],
-        'جيد جدا' => [16, 18],
-        'جيد' => [14, 16],
+        'ضعيف' => [0, 10],
         'متوسط' => [10, 14],
-        'ضعيف' => [0, 10]
+        'جيد' => [14, 16],
+        'جيد جدا' => [16, 18],
+        'ممتاز' => [18, 20],
+      
     ];
     
     // Calculate checkbox positions - SMALLER CHECKBOXES
@@ -384,6 +382,8 @@ public function generatePDF(Employee $employee, EmployeeNote $employeeNote)
     
     // Draw checkboxes and labels
     foreach ($grades as $grade => $range) {
+        $pdf->SetX($startX + $checkboxWidth + 1);
+        $pdf->Cell($labelWidth, $checkboxWidth, $grade, 0, 0, 'R');
         $pdf->SetX($startX);
         $pdf->Rect($startX, $pdf->GetY(), $checkboxWidth, $checkboxWidth);
         
@@ -393,9 +393,7 @@ public function generatePDF(Employee $employee, EmployeeNote $employeeNote)
             $pdf->SetFillColor(0, 0, 0);
             $pdf->Rect($startX + ($checkboxWidth/4), $pdf->GetY() + ($checkboxWidth/4), $checkboxWidth/2, $checkboxWidth/2, 'F');
         }
-        
-        $pdf->SetX($startX + $checkboxWidth + 1);
-        $pdf->Cell($labelWidth, $checkboxWidth, $grade, 0, 0, 'R');
+
         $startX += $checkboxWidth + $labelWidth + $checkboxMargin;
     }
     
@@ -420,55 +418,67 @@ public function generatePDF(Employee $employee, EmployeeNote $employeeNote)
     }
     
     // Section 4: معدل النقط المحصل عليها (Average score)
-    $pdf->SetY($pdf->GetY() + 10); // Further reduced from 5 to 3
-    $pdf->SetFont('aealarabiya', 'B', 12); // Smaller font
+    $pdf->SetY($pdf->GetY() + 10);
+    $pdf->SetFont('aealarabiya', 'B', 12);
     $pdf->Cell(0, 6, "4- معدل النقط المحصل عليها", 0, 1, 'R');
     
     // Draw rectangle for average score section
     $avgY = $pdf->GetY();
-    $pdf->Rect($margin, $avgY, $pageWidth, 30); // Reduced height
+    $pdf->Rect($margin, $avgY, $pageWidth, 35);
     
     // Get previous scores (last 5 years)
     $previousNotes = $employee->notes()
-        ->where('id', '!=', $employeeNote->id)
-        ->orderBy('year', 'desc')
-        ->limit(5)
-        ->get();
-    
-    $pdf->SetY($avgY + 3); // Reduced spacing
-    $pdf->SetFont('aealarabiya', '', 10); // Smaller font
+    ->where('id', '!=', $employeeNote->id)
+    ->where('year', '<=', $year)
+    ->orderBy('year', 'asc') 
+    ->limit(4)
+    ->get();
+
+    // Prepare the PDF
+    $pdf->SetY($avgY + 3);
+    $pdf->SetFont('aealarabiya', '', 10);
     $pdf->Cell($pageWidth - 10, 6, 'تذكر بمعدل النقط المحصل عليها خلال السنوات المطلوبة للترقية في الرتبة :', 0, 1, 'R');
-    
-    // Display previous years' scores - more compact
-    $totalPreviousScores = $totalScore; // Include current score
-    $scoreCount = 1; // Start with 1 for current score
-    
-    $pdf->SetX($margin + 20);
-    $pdf->Cell($pageWidth - 30, 5, "- نقطة السنة الأولى : " . $totalScore, 0, 1, 'R');
-    
-    $yearCount = 2;
+
+    // Initialize total and count
+    $totalPreviousScores = 0;
+    $scoreCount = 0;
+
+    // Arabic ordinals
+    $arabicOrdinals = ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة'];
+    $index = 0;
+
+    // Display previous years
     foreach ($previousNotes as $prevNote) {
         $pdf->SetX($margin + 20);
-        $pdf->Cell($pageWidth - 30, 5, "- نقطة السنة " . $this->getArabicOrdinal($yearCount) . " : " . $prevNote->total_score, 0, 1, 'R');
+        $ordinal = isset($arabicOrdinals[$index]) ? $arabicOrdinals[$index] : 'لاحقة';
+        $pdf->Cell($pageWidth - 30, 5, "- نقطة السنة " . $ordinal . " : " . $prevNote->total_score, 0, 1, 'R');
         $totalPreviousScores += $prevNote->total_score;
         $scoreCount++;
-        $yearCount++;
+        $index++;
     }
-    
+
+    // Display current year's note
+    $pdf->SetX($margin + 20);
+    $pdf->Cell($pageWidth - 30, 5, "- نقطة لسنة " . $year . " : " . $totalScore, 0, 1, 'R');
+
+    // Add current year to calculation
+    $totalPreviousScores += $totalScore;
+    $scoreCount++;
+
     // Calculate average
-    $average = $scoreCount > 0 ? round($totalPreviousScores / $scoreCount, 2) : $totalScore;
-    
+    $average = $scoreCount > 0 ? round($totalPreviousScores / $scoreCount, 2) : 0;
+
+    // Display average
     $pdf->SetX($margin + 20);
     $pdf->Cell($pageWidth - 30, 5, "معدل النقط المحصل عليها : " . $average, 0, 1, 'R');
-    
     // Section 5: نسق الترقية في الرتبة (Promotion pace)
-    $pdf->SetY($pdf->GetY() + 8); // Further reduced from 3 to 2
+    $pdf->SetY($pdf->GetY() + 4 ); // Further reduced from 3 to 2
     $pdf->SetFont('aealarabiya', 'B', 12); // Smaller font
     $pdf->Cell(0, 6, "5- نسق الترقية في الرتبة", 0, 1, 'R');
     
     // Draw rectangle for promotion pace section
     $paceY = $pdf->GetY();
-    $pdf->Rect($margin, $paceY, $pageWidth, 20); // Reduced height
+    $pdf->Rect($margin, $paceY , $pageWidth, 20); // Reduced height
     
     // Promotion pace checkboxes
     $pdf->SetY($paceY + 3); // Reduced spacing

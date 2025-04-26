@@ -1,7 +1,6 @@
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PencilIcon, TrashIcon, PlusIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import { router } from '@inertiajs/react';
 import { ArrowRightIcon } from 'lucide-react';
