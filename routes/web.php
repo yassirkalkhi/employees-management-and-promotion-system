@@ -6,6 +6,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\EmployeeNoteController;
 use App\Http\Controllers\EmployeePromotionController;
+use App\Http\Controllers\AnnualReportController;
 
 
 Route::get('/', function () {
@@ -39,4 +40,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('employee-notes.export-pdf')
         ->middleware(['auth', 'verified']);
     Route::get('/promotions', [EmployeePromotionController::class, 'index'])->name('promotions.index');
+    Route::middleware('auth')->group(function () {
+        Route::get('/annual-reports', [AnnualReportController::class, 'index'])->name('annual-reports.index');
+        Route::get('/annual-reports/{employee}', [AnnualReportController::class, 'generatePDF'])->name('annual-reports.generate');
+    });
 });

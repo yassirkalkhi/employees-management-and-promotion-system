@@ -62,7 +62,7 @@ export default function Authenticated({ user, header, children } : any) {
                                    جدول الترقي
                                 </Link>
                                 <Link
-                                    href={route('promotions.index')}
+                                    href={route('annual-reports.index')}
                                     className={cn(
                                         'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out',
                                         route().current('promotions.*')
