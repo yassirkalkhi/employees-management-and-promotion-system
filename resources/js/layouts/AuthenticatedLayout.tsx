@@ -49,38 +49,17 @@ export default function Authenticated({ user, header, children } : any) {
                                 >
                                    بطاقات التنقيط
                                 </Link>
+                               
                                 <Link
-                                    href={route('dashboard')}
+                                    href={route('promotions.index')}
                                     className={cn(
                                         'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out',
-                                        route().current('dashboard')
+                                        route().current('promotions.*')
                                             ? 'border-indigo-400 text-gray-900'
                                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     )}
                                 >
-                                 
-                                </Link>
-                                <Link
-                                    href={route('dashboard')}
-                                    className={cn(
-                                        'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out',
-                                        route().current('dashboard')
-                                            ? 'border-indigo-400 text-gray-900'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    )}
-                                >
-                                    لوحة التحكم
-                                </Link>
-                                <Link
-                                    href={route('dashboard')}
-                                    className={cn(
-                                        'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out',
-                                        route().current('dashboard')
-                                            ? 'border-indigo-400 text-gray-900'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    )}
-                                >
-                                    لوحة التحكم
+                                   جدول الترقي
                                 </Link>
                                 <Link
                                     href={route('promotions.index')}
@@ -91,29 +70,8 @@ export default function Authenticated({ user, header, children } : any) {
                                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     )}
                                 >
-                                    الترقيات المحتملة
-                                </Link>
-                                <Link
-                                    href={route('dashboard')}
-                                    className={cn(
-                                        'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out',
-                                        route().current('dashboard')
-                                            ? 'border-indigo-400 text-gray-900'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    )}
-                                >
-                                    لوحة التحكم
-                                </Link>
-                                <Link
-                                    href={route('dashboard')}
-                                    className={cn(
-                                        'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out',
-                                        route().current('dashboard')
-                                            ? 'border-indigo-400 text-gray-900'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    )}
-                                >
-                                    لوحة التحكم
+                                  التقرير السنوي
+
                                 </Link>
                             </div>
                         </div>
