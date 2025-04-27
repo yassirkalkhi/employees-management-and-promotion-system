@@ -9,6 +9,7 @@ import { useRef } from "react";
 
 export default function Create() {
     const closeRef = useRef<HTMLButtonElement>(null);
+    // Add to the form data
     const { data, setData, post, processing, errors, reset } = useForm({
         nom_famille: '',
         prenom: '',
@@ -21,6 +22,7 @@ export default function Create() {
         cadre: '',
         grade: '',
         rang: '',
+        level: 0,
         date_grade: '',
         date_effet: '',
         date_entree_fonction_publique: '',
@@ -45,6 +47,7 @@ export default function Create() {
         });
     };
 
+    // Add to the error messages
     const errorMessages = {
         nom_famille: 'الرجاء إدخال الاسم العائلي',
         prenom: 'الرجاء إدخال الاسم الشخصي',
@@ -62,7 +65,8 @@ export default function Create() {
         fonction_actuelle: 'الرجاء إدخال الوظيفة المزاولة حاليا',
         date_fonction_actuelle: 'الرجاء إدخال تاريخ مزاولة الوظيفة الحالية',
         lieu_affectation: 'الرجاء إدخال مقر التعيين',
-        adresse: 'الرجاء إدخال العنوان'
+        adresse: 'الرجاء إدخال العنوان',
+        level: 'الرجاء إدخال السلم',
     };
 
     // Add this helper function
@@ -224,6 +228,19 @@ export default function Create() {
                                         required
                                     />
                                 </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="level" className="text-sm font-medium text-gray-700">السلم</Label>
+                                      <Input
+                                         id="level"
+                                         type="number"
+                                         defaultValue={1}
+                                         min={1}
+                                         value={data.level}
+                                         onChange={(e) => setData('level', parseInt(e.target.value))}
+                                           className="text-gray-700"
+                                              />
+                                                 {getFieldError('level')}
+                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="rang" className="text-sm font-medium text-gray-700">الرتبة</Label>
                                     <Input

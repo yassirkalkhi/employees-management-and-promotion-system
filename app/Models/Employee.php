@@ -19,6 +19,7 @@ class Employee extends Model
         'grade',
         'date_grade',
         'rang',
+        'level',
         'date_effet',
         'date_entree_fonction_publique',
         'fonction_actuelle',
@@ -38,5 +39,10 @@ class Employee extends Model
     public function notes()
     {
         return $this->hasMany(EmployeeNote::class);
+    }
+
+    public function latestNote()
+    {
+        return $this->hasOne(EmployeeNote::class)->latest();
     }
 }

@@ -5,6 +5,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\EmployeeNoteController;
+use App\Http\Controllers\EmployeePromotionController;
 
 
 Route::get('/', function () {
@@ -37,4 +38,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/employee-notes/{employee}/{employeeNote}/export-pdf', [EmployeeNoteController::class, 'generatePDF'])
         ->name('employee-notes.export-pdf')
         ->middleware(['auth', 'verified']);
+    Route::get('/promotions', [EmployeePromotionController::class, 'index'])->name('promotions.index');
 });

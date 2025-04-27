@@ -16,6 +16,7 @@ interface Employee {
     cadre: string;
     grade: string;
     rang: string;
+    level: number;
     fonction_actuelle: string;
     lieu_affectation: string;
     lieu_naissance?: string;
@@ -35,7 +36,8 @@ interface EditProps {
 
 export default function Edit({ employee }: EditProps) {
     const closeRef = useRef<HTMLButtonElement>(null);
-    const { data, setData, put, processing, errors, reset } = useForm({
+    // Add to the form data
+    const { data, setData, put, processing, errors } = useForm({
         id: employee.id,
         nom_famille: employee.nom_famille || '',
         prenom: employee.prenom || '',
@@ -48,6 +50,7 @@ export default function Edit({ employee }: EditProps) {
         cadre: employee.cadre || '',
         grade: employee.grade || '',
         rang: employee.rang || '',
+        level: employee.level || 0,
         date_grade: employee.date_grade || '',
         date_effet: employee.date_effet || '',
         date_entree_fonction_publique: employee.date_entree_fonction_publique || '',
@@ -71,6 +74,7 @@ export default function Edit({ employee }: EditProps) {
         });
     };
 
+    // Add to the error messages (if not already present)
     const errorMessages = {
         nom_famille: 'الرجاء إدخال الاسم العائلي',
         prenom: 'الرجاء إدخال الاسم الشخصي',
@@ -82,6 +86,7 @@ export default function Edit({ employee }: EditProps) {
         cadre: 'الرجاء إدخال الإطار',
         grade: 'الرجاء إدخال الدرجة',
         rang: 'الرجاء إدخال الرتبة',
+        level: 'الرجاء إدخال سلم',
         date_grade: 'الرجاء إدخال تاريخ التعيين في الدرجة',
         date_effet: 'الرجاء إدخال تاريخ المفعول',
         date_entree_fonction_publique: 'الرجاء إدخال تاريخ ولوج الوظيفة العمومية',
@@ -260,6 +265,19 @@ export default function Edit({ employee }: EditProps) {
                                     />
                                 </div>
                                 <div className="space-y-2">
+                                    <Label htmlFor="level" className="text-sm font-medium text-gray-700">السلم</Label>
+                                    <Input
+                                       id="level"
+                                       type="number"
+                                       defaultValue={1}
+                                       min={1}
+                                       value={data.level}
+                                       onChange={(e) => setData('level', parseInt(e.target.value))}
+                                        className="text-gray-700"
+                                                 />
+                                              {getFieldError('level')}
+                                </div>
+                                <div className="space-y-2">
                                     <Label htmlFor="date_grade" className="text-sm font-medium text-gray-700">تاريخ التعيين في الدرجة</Label>
                                     <Input
                                         id="date_grade"
@@ -270,6 +288,7 @@ export default function Edit({ employee }: EditProps) {
                                         required
                                     />
                                 </div>
+                              
                                 <div className="space-y-2">
                                     <Label htmlFor="date_effet" className="text-sm font-medium text-gray-700">تاريخ المفعول</Label>
                                     <Input
@@ -338,3 +357,4 @@ export default function Edit({ employee }: EditProps) {
         </Dialog>
     );
 }
+

@@ -5,6 +5,7 @@ import Create from './Create';
 import Import from './Import';
 import Edit from './Edit';
 
+// Update the Employee interface
 interface Employee {
     id: number;
     nom_famille: string;
@@ -16,6 +17,7 @@ interface Employee {
     rang: string;
     fonction_actuelle: string;
     lieu_affectation: string;
+    level: number;
 }
 
 interface Props {
@@ -76,8 +78,13 @@ export default function Index({ auth, employees }: Props) {
                                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 الدرجة
                                             </th>
+                                         
                                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 الرتبة
+                                            </th>
+                                               
+                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                سلم
                                             </th>
                                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 الوظيفة المزاولة حاليا
@@ -88,6 +95,8 @@ export default function Index({ auth, employees }: Props) {
                                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 الإجراءات
                                             </th>
+                                            
+                                            
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
@@ -100,6 +109,7 @@ export default function Index({ auth, employees }: Props) {
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">{employee.cadre}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">{employee.grade}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">{employee.rang}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right">{employee.level}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">{employee.fonction_actuelle}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">{employee.lieu_affectation}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
