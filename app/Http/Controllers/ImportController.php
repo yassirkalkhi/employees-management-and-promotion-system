@@ -38,19 +38,18 @@ class ImportController extends Controller
  
     public function import(Request $request)
     {
-        Log::info('Received file: '. $request->file('file')->getClientOriginalName());
+      
         $request->validate([
             'file' => 'required|file|mimes:xls,xlsx'
         ]);
 
         try {
-        $file = $request->file('file');
+           $file = $request->file('file');
             $extension = strtolower($file->getClientOriginalExtension());
             
             // Vérifier l'extension du fichier
             if (!in_array($extension, ['xls', 'xlsx'])) {
-                return redirect()->route('employees.index')
-                    ->with('error', 'يجب أن يكون الملف بتنسيق Excel (.xls أو .xlsx)');
+                throw new \Exception('يجب أن يكون الملف بتنسيق Excel (.xls أو .xlsx)');
             }
 
             // Utiliser PhpSpreadsheet directement
@@ -64,8 +63,7 @@ class ImportController extends Controller
 
                 // Vérifier si le fichier contient des données
                 if (count($rows) < 2) {
-                    return redirect()->route('employees.index')
-                        ->with('error', 'ملف Excel فارغ');
+                   throw new \Exception('لم يتم العثور على بيانات في الملف');
                 }
 
                 // Supprimer l'en-tête
@@ -81,9 +79,14 @@ class ImportController extends Controller
 
                     // Vérifier si l'employé existe déjà
                     if (Employee::where('numero_cin', $row[2])->exists()) {
-                        $errors[] = "الموظف برقم البطاقة الوطنية {$row[2]} موجود بالفعل (السطر " . ($rowIndex + 2) . ")";
+                        $errors[] = "الموظف برقم البطاقة الوطنية {$row[2]} موجود بالفعل  ";
                         continue;
                     }
+                    if (Employee::where('numero_embauche', $row[3])->exists()) {
+                        $errors[] = "الموظف برقم رقم التأجير{$row[2]} موجود بالفعل  ";
+                        continue;
+                    }
+                    Log::info('Errors', $errors);
 
                     // Créer l'employé
                     Log::info('Importing employee: '. $row[0]. ' '. $row[1]);
@@ -98,14 +101,15 @@ class ImportController extends Controller
                         'nombre_enfants' => (int)$row[7],
                         'cadre' => $row[8],
                         'grade' => $row[9],
-                        'date_grade' => $this->parseDate($row[10]),
-                        'rang' => $row[11],
-                        'date_effet' => $this->parseDate($row[12]),
-                        'date_entree_fonction_publique' => $this->parseDate($row[13]),
-                        'fonction_actuelle' => $row[14],
-                        'date_fonction_actuelle' => $this->parseDate($row[15]),
-                        'lieu_affectation' => $row[16],
-                        'adresse' => $row[17] ?? null
+                        'level' => $row[10], // Ajout de 'level
+                        'date_grade' => $this->parseDate($row[11]),
+                        'rang' => $row[12],
+                        'date_effet' => $this->parseDate($row[13]),
+                        'date_entree_fonction_publique' => $this->parseDate($row[14]),
+                        'fonction_actuelle' => $row[15],
+                        'date_fonction_actuelle' => $this->parseDate($row[16]),
+                        'lieu_affectation' => $row[17],
+                        'adresse' => $row[18] ?? null
                     ]);
 
                     $importedCount++;
@@ -114,30 +118,39 @@ class ImportController extends Controller
                 if ($importedCount > 0) {
                     \DB::commit();
                     $message = "تم استيراد {$importedCount} موظف بنجاح";
-                    if (count($errors) > 0) {
-                        $message .= ". مع " . count($errors) . " أخطاء";
-                    }
-                    return Inertia::render('Employees/Index', [
+                    Log::info('Import success', ['message' => $message, 'errors' => $errors]);
+                    return redirect()->route('import.results')->with([
                         'success' => $message,
                         'import_errors' => $errors
                     ]);
                 } else {
                     \DB::rollBack();
-                    return redirect()->route('employees.index')
-                        ->with('error', 'لم يتم استيراد أي موظف. تحقق من بيانات الملف.');
+                    Log::info('Import failed - no records imported', ['errors' => $errors]);
+                    return redirect()->route('import.results')->with([
+                        'import_errors' => $errors
+                    ]);
                 }
 
             } catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
-                \Log::error('خطأ في قراءة الملف: ' . $e->getMessage());
-                return redirect()->route('employees.index')
-                    ->with('error', 'لا يمكن قراءة الملف. تأكد من أن الملف بتنسيق Excel صحيح.');
+                \DB::rollBack();
+                Log::error('Excel reader error', ['error' => $e->getMessage()]);
+                return redirect()->route('import.results')->with([
+                    'import_errors' => [$e->getMessage()]
+                ]);
             }
 
         } catch (\Exception $e) {
-            \Log::error('خطأ عام: ' . $e->getMessage());
-        return redirect()->route('employees.index')
-                ->with('error', 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+            \Log::error('General import error', ['error' => $e->getMessage()]);
+            return redirect()->route('import.results')->with([
+                'import_errors' => [$e->getMessage()]
+            ]);
         }
+
+        // Remove this unreachable code
+        // return Inertia::render('Employees/Index', [
+        //        'import_errors' => $errors
+        //    ]);
+
     }
 
 
@@ -194,5 +207,16 @@ class ImportController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Display import results
+     */
+    public function results()
+    {
+        return Inertia::render('Employees/ImportResult', [
+            'success' => session('success'),
+            'import_errors' => session('import_errors')
+        ]);
     }
 }

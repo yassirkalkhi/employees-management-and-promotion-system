@@ -131,429 +131,463 @@ class EmployeeNoteController extends Controller
     
 
 
-public function generatePDF(Employee $employee, EmployeeNote $employeeNote) 
-{
-    // Get year from employee note
-    $year = $employeeNote->year;
+    public function generatePDF(Employee $employee, EmployeeNote $employeeNote) 
+    {
+        // Get year from employee note
+        $year = $employeeNote->year;
 
-    // Calculate total score from employee note fields
-    $totalScore = $employeeNote->productivity + 
-                 $employeeNote->organization + 
-                 $employeeNote->professional_conduct + 
-                 $employeeNote->innovation + 
-                 $employeeNote->job_performance;
+        // Calculate total score from employee note fields
+        $totalScore = $employeeNote->productivity + 
+                    $employeeNote->organization + 
+                    $employeeNote->professional_conduct + 
+                    $employeeNote->innovation + 
+                    $employeeNote->job_performance;
 
-    // Create new TCPDF instance
-    $pdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+        // Create new TCPDF instance
+        $pdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 
-    // Set document info
-    $pdf->SetCreator(PDF_CREATOR);
-    $pdf->SetAuthor('EST');
-    $pdf->SetTitle('بطاقة التنقيط الفردية'."".$year);
+        // Set document info
+        $pdf->SetCreator(PDF_CREATOR);
+        $pdf->SetAuthor('EST');
+        $pdf->SetTitle('بطاقة التنقيط الفردية'."".$year);
 
-    // Set margins
-    $pdf->SetMargins(4, 4, 4);
+        // Set margins
+        $pdf->SetMargins(4, 4, 4);
 
-    // Add page
-    $pdf->AddPage();
+        // Add page
+        $pdf->AddPage();
 
-    // Configure dimensions
-    $margin = 4;
-    $pageWidth = $pdf->getPageWidth() - 2 * $margin;
-    
-    // Column widths
-    $frColWidth = $pageWidth * 0.50;
-    $logoColWidth = $pageWidth * 0.15; 
-    $arColWidth = $pageWidth * 0.35;
-    
-    $startY = 2;
-    $headerHeight = 33;
-
-    // Border settings
-    $pdf->SetDrawColor(0, 0, 0);
-    $pdf->SetLineWidth(0.2);
-
-    // Left column (French)
-    $pdf->Rect($margin, $startY , $frColWidth, $headerHeight - 7);
-    
-    $frLines = [
-        "Ministère de l'Education Nationale, de l'Enseignement Supérieur,",
-        "de la Formation des Cadres et de la Recherche Scientifique",
-        "Département de l'Enseignement Supérieur de la Formation ",
-        "des Cadres et de la Recherche Scientifique", 
-        "Université Cadi Ayyad",
-        "La Présidence"
-    ];
-    
-    $pdf->SetFont('Times', 'B', 9);
-    $lineHeight = 4;
-    $startYText = ($startY - 4) + ($headerHeight - (count($frLines) * $lineHeight)) / 2;
-    
-    foreach ($frLines as $line) {
-        $pdf->SetXY($margin, $startYText);
-        $pdf->Cell($frColWidth, $lineHeight, $line, 0, 2, 'C');
-        $startYText += $lineHeight;
-    }
-
-    // Center column (Logo)
-    $pdf->Rect($margin + $frColWidth, $startY, $logoColWidth, $headerHeight - 7);
-    
-    $logoWidth = 25;
-    $logoX = $margin + $frColWidth + ($logoColWidth - $logoWidth) / 2;
-    $logoY = ($startY - 4) + ($headerHeight - $logoWidth) / 2;
-    $pdf->Image(public_path('images/fst1.png'), $logoX, $logoY, $logoWidth);
-
-    // Right column (Arabic)
-    $pdf->Rect($margin + $frColWidth + $logoColWidth, $startY, $arColWidth, $headerHeight -7);
-    
-    // Arabic settings
-    $pdf->SetFont('aealarabiya', '', 12);
-    $pdf->SetRTL(true);
-    
-    $arText = "وزارة التربية الوطنية والتعليم العالي\n"
-            . "و تكوين الأطر و البحث العلمي\n"
-            . "قطاع التعليم العالي و تكوين الأطر\n"
-            . "و البحث العلمي\n"
-            . "جامعة القاضي عياض - الرئاسة";
-    
-    $pdf->SetXY($margin + 2, ($startY - 3) + 2);
-    $pdf->MultiCell($arColWidth - 4, 5, $arText, 0, 'R');
-
-    // Disable RTL
-    $pdf->SetRTL(false);
-
-    // Main content
-    $pdf->SetY(($startY) + $headerHeight + 0.5);
-    $pdf->SetFont('dejavusans', '', 12);
-    $pdf->Cell(0, 10, "   بطــاقـــــــــــة التنقيـــــــط الفرديـــــــــــة برسم سنـــــــــة " . $year, 0, 1, 'C');
-
-    // Employee identity section
-    $sectionY = $pdf->GetY() + 2; // Reduced from 5 to 3
-    $pdf->SetFont('aealarabiya', 'B', 12); // Already reduced from 14 to 12
-    $pdf->Cell(0, 10, "1- هوية الموظف", 0, 1, 'R'); // Already reduced from 14 to 10
-
-    // Draw rectangle - reduced height
-    $pdf->Rect($margin, $sectionY, $pageWidth, 69); // Reduced from 75 to 70
-
-    // Add separator line - adjusted position
-    $pdf->Line($margin, $sectionY + 8, $margin + $pageWidth, $sectionY + 8); // Reduced from 9 to 8
-
-    // Employee info content
-    $pdf->SetFont('aealarabiya', '', 10);
-    $pdf->SetXY($margin + 4, $sectionY + 10);
-
-    // Employee data arrays
-    $employeeData2 = [
-        ['الاسم العائلي:', $employee->nom_famille],
-        ['الاسم الشخصي:', $employee->prenom],
-        ['تاريخ الازدياد:', $employee->date_naissance instanceof \DateTime ? $employee->date_naissance->format('Y-m-d') : $employee->date_naissance],
-        ['الحالة العائلية:', $employee->situation_familiale],
-        ['الإطار ومقر التعيين:', $employee->cadre."".$employee->lieu_affectation],
-        ['تاريخ التعيين في الدرجة:', $employee->date_grade ? date('Y-m-d', strtotime($employee->date_grade)) : ''],
-        ['الرتبة:', $employee->rang],
-        ['تاريخ ولوج الوظيفة العمومية:', $employee->date_entree_fonction_publique ? date('Y-m-d', strtotime($employee->date_entree_fonction_publique)) : ''],
-        ['الوظيفة المزاولة حاليا:', $employee->fonction_actuelle],
-        ['   منذ  :', $employee->date_fonction_actuelle ? date('Y-m-d', strtotime($employee->date_fonction_actuelle)) : ''],
-    ];
-
-    $employeeData = [
+        // Configure dimensions
+        $margin = 4;
+        $pageWidth = $pdf->getPageWidth() - 2 * $margin;
         
-        ['رقم ب.ت.و:', $employee->numero_cin],
-        ['رقم التأجير:', $employee->numero_embauche],
-        ['مكان الازدياد:', $employee->lieu_naissance],
-        ['عدد الأطفال:', $employee->nombre_enfants],
-        ['تاريخ المفعول:', $employee->date_effet ? date('Y-m-d', strtotime($employee->date_effet)) : ''],
-    
-    ];
+        // Column widths
+        $frColWidth = $pageWidth * 0.50;
+        $logoColWidth = $pageWidth * 0.15; 
+        $arColWidth = $pageWidth * 0.35;
+        
+        $startY = 2;
+        $headerHeight = 33;
 
-    $lineHeight = 4.5; // Reduced line height
-    $labelWidth = 50;
-    $sideMargin = 5; // Added side margin 
-    $valueWidth = ($pageWidth / 2) - $labelWidth - $sideMargin - 15;
-    $currentY = $sectionY + 10; // Reduced top margin
-    $maxLines = max(count($employeeData), count($employeeData2));
-    for ($i = 0; $i < $maxLines; $i++) {
-        // Left column
-        if (isset($employeeData[$i])) {
-            $pdf->SetXY($margin + ($pageWidth / 2) - $labelWidth - $sideMargin, $currentY);
-            $pdf->Cell($labelWidth, $lineHeight, $employeeData[$i][0], 0, 0, 'R');
-            
-            $pdf->SetXY($margin + 10 + $sideMargin, $currentY);
-            $pdf->Cell($valueWidth, $lineHeight, $employeeData[$i][1], 0, 0, 'R');
+        // Border settings
+        $pdf->SetDrawColor(0, 0, 0);
+        $pdf->SetLineWidth(0.2);
+
+        // Left column (French)
+        $pdf->Rect($margin, $startY , $frColWidth, $headerHeight - 7);
+        
+        $frLines = [
+            "Ministère de l'Education Nationale, de l'Enseignement Supérieur,",
+            "de la Formation des Cadres et de la Recherche Scientifique",
+            "Département de l'Enseignement Supérieur de la Formation ",
+            "des Cadres et de la Recherche Scientifique", 
+            "Université Cadi Ayyad",
+            "La Présidence"
+        ];
+        
+        $pdf->SetFont('Times', 'B', 9);
+        $lineHeight = 4;
+        $startYText = ($startY - 4) + ($headerHeight - (count($frLines) * $lineHeight)) / 2;
+        
+        foreach ($frLines as $line) {
+            $pdf->SetXY($margin, $startYText);
+            $pdf->Cell($frColWidth, $lineHeight, $line, 0, 2, 'C');
+            $startYText += $lineHeight;
         }
-        // Right column  
-        if (isset($employeeData2[$i])) {
-            $pdf->SetXY($margin + $pageWidth - $labelWidth - $sideMargin, $currentY);
-            $pdf->Cell($labelWidth, $lineHeight, $employeeData2[$i][0], 0, 0, 'R');
+
+        // Center column (Logo)
+        $pdf->Rect($margin + $frColWidth, $startY, $logoColWidth, $headerHeight - 7);
+        
+        $logoWidth = 25;
+        $logoX = $margin + $frColWidth + ($logoColWidth - $logoWidth) / 2;
+        $logoY = ($startY - 4) + ($headerHeight - $logoWidth) / 2;
+        $pdf->Image(public_path('images/fst1.png'), $logoX, $logoY, $logoWidth);
+
+        // Right column (Arabic)
+        $pdf->Rect($margin + $frColWidth + $logoColWidth, $startY, $arColWidth, $headerHeight -7);
+        
+        // Arabic settings
+        $pdf->SetFont('aealarabiya', '', 12);
+        $pdf->SetRTL(true);
+        
+        $arText = "وزارة التربية الوطنية والتعليم العالي\n"
+                . "و تكوين الأطر و البحث العلمي\n"
+                . "قطاع التعليم العالي و تكوين الأطر\n"
+                . "و البحث العلمي\n"
+                . "جامعة القاضي عياض - الرئاسة";
+        
+        $pdf->SetXY($margin + 2, ($startY - 3) + 2);
+        $pdf->MultiCell($arColWidth - 4, 5, $arText, 0, 'R');
+
+        // Disable RTL
+        $pdf->SetRTL(false);
+
+        // Main content
+        $pdf->SetY(($startY) + $headerHeight + 0.5);
+        $pdf->SetFont('dejavusans', '', 12);
+        $pdf->Cell(0, 10, "   بطــاقـــــــــــة التنقيـــــــط الفرديـــــــــــة برسم سنـــــــــة " . $year, 0, 1, 'C');
+
+        // Employee identity section
+        $sectionY = $pdf->GetY() + 2; // Reduced from 5 to 3
+        $pdf->SetFont('aealarabiya', 'B', 12); // Already reduced from 14 to 12
+        $pdf->Cell(0, 10, "1- هوية الموظف", 0, 1, 'R'); // Already reduced from 14 to 10
+
+        // Draw rectangle - reduced height
+        $pdf->Rect($margin, $sectionY, $pageWidth, 69); // Reduced from 75 to 70
+
+        // Add separator line - adjusted position
+        $pdf->Line($margin, $sectionY + 8, $margin + $pageWidth, $sectionY + 8); // Reduced from 9 to 8
+
+        // Employee info content
+        $pdf->SetFont('aealarabiya', '', 10);
+        $pdf->SetXY($margin + 4, $sectionY + 10);
+
+        // Employee data arrays
+        $employeeData2 = [
+            ['الاسم العائلي:', $employee->nom_famille],
+            ['الاسم الشخصي:', $employee->prenom],
+            ['تاريخ الازدياد:', $employee->date_naissance instanceof \DateTime ? $employee->date_naissance->format('Y-m-d') : $employee->date_naissance],
+            ['الحالة العائلية:', $employee->situation_familiale],
+            ['الإطار ومقر التعيين:', $employee->cadre."".$employee->lieu_affectation],
+            ['تاريخ التعيين في الدرجة:', $employee->date_grade ? date('Y-m-d', strtotime($employee->date_grade)) : ''],
+            ['الرتبة:', $employee->rang],
+            ['تاريخ ولوج الوظيفة العمومية:', $employee->date_entree_fonction_publique ? date('Y-m-d', strtotime($employee->date_entree_fonction_publique)) : ''],
+            ['الوظيفة المزاولة حاليا:', $employee->fonction_actuelle],
+            ['   منذ  :', $employee->date_fonction_actuelle ? date('Y-m-d', strtotime($employee->date_fonction_actuelle)) : ''],
+        ];
+
+        $employeeData = [
             
-            $pdf->SetXY($margin + ($pageWidth / 2) + 10 + $sideMargin, $currentY);
-            $pdf->Cell($valueWidth, $lineHeight, $employeeData2[$i][1], 0, 0, 'R');
+            ['رقم ب.ت.و:', $employee->numero_cin],
+            ['رقم التأجير:', $employee->numero_embauche],
+            ['مكان الازدياد:', $employee->lieu_naissance],
+            ['عدد الأطفال:', $employee->nombre_enfants],
+            ['تاريخ المفعول:', $employee->date_effet ? date('Y-m-d', strtotime($employee->date_effet)) : ''],
+        
+        ];
+
+        $lineHeight = 4.5; // Reduced line height
+        $labelWidth = 50;
+        $sideMargin = 5; // Added side margin 
+        $valueWidth = ($pageWidth / 2) - $labelWidth - $sideMargin - 15;
+        $currentY = $sectionY + 10; // Reduced top margin
+        $maxLines = max(count($employeeData), count($employeeData2));
+        for ($i = 0; $i < $maxLines; $i++) {
+            // Left column
+            if (isset($employeeData[$i])) {
+                $pdf->SetXY($margin + ($pageWidth / 2) - $labelWidth - $sideMargin, $currentY);
+                $pdf->Cell($labelWidth, $lineHeight, $employeeData[$i][0], 0, 0, 'R');
+                
+                $pdf->SetXY($margin + 10 + $sideMargin, $currentY);
+                $pdf->Cell($valueWidth, $lineHeight, $employeeData[$i][1], 0, 0, 'R');
+            }
+            // Right column  
+            if (isset($employeeData2[$i])) {
+                $pdf->SetXY($margin + $pageWidth - $labelWidth - $sideMargin, $currentY);
+                $pdf->Cell($labelWidth, $lineHeight, $employeeData2[$i][0], 0, 0, 'R');
+                
+                $pdf->SetXY($margin + ($pageWidth / 2) + 10 + $sideMargin, $currentY);
+                $pdf->Cell($valueWidth, $lineHeight, $employeeData2[$i][1], 0, 0, 'R');
+            }
+
+            $currentY += $lineHeight;
         }
+        // Evaluation criteria section
+        $evaluationY = $sectionY + 59;
+        $pdf->SetY($evaluationY);
+        $pdf->SetFont('aealarabiya', 'B', 12); // تصغير حجم الخط من 14 إلى 12
+        $pdf->Cell(0, 10, "2- النقطة الممنوحة  ", 0, 1, 'R'); // تقليل ارتفاع الخلية من 14 إلى 10
 
-        $currentY += $lineHeight;
-    }
-    // Evaluation criteria section
-    $evaluationY = $sectionY + 59;
-    $pdf->SetY($evaluationY);
-    $pdf->SetFont('aealarabiya', 'B', 12); // تصغير حجم الخط من 14 إلى 12
-    $pdf->Cell(0, 10, "2- النقطة الممنوحة  ", 0, 1, 'R'); // تقليل ارتفاع الخلية من 14 إلى 10
+        // Draw evaluation section rectangle
+        $pdf->Rect($margin, $evaluationY, $pageWidth, 63); // تقليل الارتفاع من 100 إلى 90
 
-    // Draw evaluation section rectangle
-    $pdf->Rect($margin, $evaluationY, $pageWidth, 63); // تقليل الارتفاع من 100 إلى 90
+        // Add side margins to table
+        $tableMargin = 5;
+        $tableWidth = $pageWidth - (2 * $tableMargin);
 
-    // Add side margins to table
-    $tableMargin = 5;
-    $tableWidth = $pageWidth - (2 * $tableMargin);
+        // Column widths with margins
+        $colWidth1 = $tableWidth * 0.05;
+        $colWidth2 = $tableWidth * 0.35;
+        $colWidth3 = $tableWidth * 0.20;
+        $colWidth4 = $tableWidth * 0.20;
+        $colWidth5 = $tableWidth * 0.20;
 
-    // Column widths with margins
-    $colWidth1 = $tableWidth * 0.05;
-    $colWidth2 = $tableWidth * 0.35;
-    $colWidth3 = $tableWidth * 0.20;
-    $colWidth4 = $tableWidth * 0.20;
-    $colWidth5 = $tableWidth * 0.20;
-
-    // Table headers
-    $pdf->SetY($evaluationY + 12); // تقليل المسافة من 15 إلى 12
-    $pdf->SetX($margin + $tableMargin);
-    $pdf->SetFont('', '', 10); // تصغير حجم الخط من 12 إلى 10
-    
-    $pdf->Cell($colWidth5, 7, 'ملاحظـــــــــات', 1, 0, 'C'); // تقليل ارتفاع الخلية من 8 إلى 7
-    $pdf->Cell($colWidth4, 7, 'النقطة الممنوحة', 1, 0, 'C');
-    $pdf->Cell($colWidth3, 7, 'سلم التنقيط', 1, 0, 'C');
-    $pdf->Cell($colWidth2, 7, 'عناصر التنقيط', 1, 0, 'R');
-    $pdf->Cell($colWidth1, 7, 'الرقم', 1, 1, 'L');
-
-    // Evaluation criteria
-    $evaluationCriteria = [
-        ['num' => '1', 'critere' => 'إنجاز المهام المرتبطة بالوظيفة', 'echelle' => 'من 0 إلى 5', 'note' => $employeeNote->job_performance, 'comment' => $employeeNote->job_performance_comment, 'max_note' => 5],
-        ['num' => '2', 'critere' => 'المردودية', 'echelle' => 'من 0 إلى 5', 'note' => $employeeNote->productivity, 'comment' => $employeeNote->productivity_comment, 'max_note' => 5],
-        ['num' => '3', 'critere' => 'القدرة على التنظيم', 'echelle' => 'من 0 إلى 3', 'note' => $employeeNote->organization, 'comment' => $employeeNote->organization_comment, 'max_note' => 3],
-        ['num' => '4', 'critere' => 'السلوك المهني', 'echelle' => 'من 0 إلى 4', 'note' => $employeeNote->professional_conduct, 'comment' => $employeeNote->professional_conduct_comment, 'max_note' => 4],
-        ['num' => '5', 'critere' => 'البحث والابتكار', 'echelle' => 'من 0 إلى 3', 'note' => $employeeNote->innovation, 'comment' => $employeeNote->innovation_comment, 'max_note' => 3]
-    ];
-
-    foreach ($evaluationCriteria as $criteria) {
+        // Table headers
+        $pdf->SetY($evaluationY + 12); // تقليل المسافة من 15 إلى 12
         $pdf->SetX($margin + $tableMargin);
-        $pdf->SetFont('aealarabiya', '', 8); // تصغير حجم الخط من 9 إلى 8 للملاحظات
-        $pdf->Cell($colWidth5, 7, $criteria['comment'], 1, 0, 'C'); // تقليل ارتفاع الخلية من 8 إلى 7
-        $pdf->SetFont('aealarabiya', '', 10); // تصغير حجم الخط من 12 إلى 10
-        $pdf->Cell($colWidth4, 7, $criteria['note'] . '/' . $criteria['max_note'], 1, 0, 'C');
-        $pdf->Cell($colWidth3, 7, $criteria['echelle'], 1, 0, 'C');
-        $pdf->Cell($colWidth2, 7, $criteria['critere'], 1, 0, 'R');
-        $pdf->Cell($colWidth1, 7, $criteria['num'], 1, 1, 'L');
-    }
-
-    // Total row
-    $pdf->SetX($margin + $tableMargin);
-    $pdf->SetFont('aealarabiya', '', 10);
-    
-    $pdf->Cell($colWidth5 + $colWidth4 + $colWidth3, 7, $totalScore . '/20', 1, 0, 'C'); // تقليل ارتفاع الخلية من 8 إلى 7
-    $pdf->Cell($colWidth2 + $colWidth1, 7, 'مجموع النقط الجزئية (من 0 إلى 20 )', 1, 1, 'R');
-    
-    // Section 3: الميـــــــزة الممنوحــــــة (Grade)
-    $pdf->SetY($pdf->GetY() + 4); // Further reduced from 3 to 2
-    $pdf->SetFont('aealarabiya', 'B', 12); // Smaller font
-    $pdf->Cell(0, 6, "3- الميــــــزة الممنوحــــــة", 0, 1, 'R');
-    
-    // Draw rectangle for grade section
-    $gradeY = $pdf->GetY();
-    $pdf->Rect($margin, $gradeY + 1, $pageWidth, 20); // Reduced height
-    
-    // Grade checkboxes
-    $pdf->SetY($gradeY + 4); // Reduced spacing
-    $pdf->SetFont('aealarabiya', '', 10); // Smaller font
-    
-    // Define grades and their score ranges
-    $grades = [
-        'ضعيف' => [0, 10],
-        'متوسط' => [10, 14],
-        'جيد' => [14, 16],
-        'جيد جدا' => [16, 18],
-        'ممتاز' => [18, 20],
-      
-    ];
-    
-    // Calculate checkbox positions - SMALLER CHECKBOXES
-    $checkboxWidth = 6; // Reduced from 10
-    $checkboxMargin = 3; // Reduced from 5
-    $labelWidth = 25; // Reduced from 30
-    $totalWidth = ($checkboxWidth + $labelWidth + $checkboxMargin) * count($grades);
-    $startX = $margin + ($pageWidth - $totalWidth) / 2;
-    
-    // Draw checkboxes and labels
-    foreach ($grades as $grade => $range) {
-        $pdf->SetX($startX + $checkboxWidth + 1);
-        $pdf->Cell($labelWidth, $checkboxWidth, $grade, 0, 0, 'R');
-        $pdf->SetX($startX);
-        $pdf->Rect($startX, $pdf->GetY(), $checkboxWidth, $checkboxWidth);
+        $pdf->SetFont('', '', 10); // تصغير حجم الخط من 12 إلى 10
         
-        // Check the box if this is the current grade
-        if (($totalScore >= $range[0] && $totalScore < $range[1]) || 
-            ($grade == 'ممتاز' && $totalScore == 20)) {
-            $pdf->SetFillColor(0, 0, 0);
-            $pdf->Rect($startX + ($checkboxWidth/4), $pdf->GetY() + ($checkboxWidth/4), $checkboxWidth/2, $checkboxWidth/2, 'F');
+        $pdf->Cell($colWidth5, 7, 'ملاحظـــــــــات', 1, 0, 'C'); // تقليل ارتفاع الخلية من 8 إلى 7
+        $pdf->Cell($colWidth4, 7, 'النقطة الممنوحة', 1, 0, 'C');
+        $pdf->Cell($colWidth3, 7, 'سلم التنقيط', 1, 0, 'C');
+        $pdf->Cell($colWidth2, 7, 'عناصر التنقيط', 1, 0, 'R');
+        $pdf->Cell($colWidth1, 7, 'الرقم', 1, 1, 'L');
+
+        // Evaluation criteria
+        $evaluationCriteria = [
+            ['num' => '1', 'critere' => 'إنجاز المهام المرتبطة بالوظيفة', 'echelle' => 'من 0 إلى 5', 'note' => $employeeNote->job_performance, 'comment' => $employeeNote->job_performance_comment, 'max_note' => 5],
+            ['num' => '2', 'critere' => 'المردودية', 'echelle' => 'من 0 إلى 5', 'note' => $employeeNote->productivity, 'comment' => $employeeNote->productivity_comment, 'max_note' => 5],
+            ['num' => '3', 'critere' => 'القدرة على التنظيم', 'echelle' => 'من 0 إلى 3', 'note' => $employeeNote->organization, 'comment' => $employeeNote->organization_comment, 'max_note' => 3],
+            ['num' => '4', 'critere' => 'السلوك المهني', 'echelle' => 'من 0 إلى 4', 'note' => $employeeNote->professional_conduct, 'comment' => $employeeNote->professional_conduct_comment, 'max_note' => 4],
+            ['num' => '5', 'critere' => 'البحث والابتكار', 'echelle' => 'من 0 إلى 3', 'note' => $employeeNote->innovation, 'comment' => $employeeNote->innovation_comment, 'max_note' => 3]
+        ];
+
+        foreach ($evaluationCriteria as $criteria) {
+            $pdf->SetX($margin + $tableMargin);
+            $pdf->SetFont('aealarabiya', '', 8); // تصغير حجم الخط من 9 إلى 8 للملاحظات
+            $pdf->Cell($colWidth5, 7, $criteria['comment'], 1, 0, 'C'); // تقليل ارتفاع الخلية من 8 إلى 7
+            $pdf->SetFont('aealarabiya', '', 10); // تصغير حجم الخط من 12 إلى 10
+            $pdf->Cell($colWidth4, 7, $criteria['note'] . '/' . $criteria['max_note'], 1, 0, 'C');
+            $pdf->Cell($colWidth3, 7, $criteria['echelle'], 1, 0, 'C');
+            $pdf->Cell($colWidth2, 7, $criteria['critere'], 1, 0, 'R');
+            $pdf->Cell($colWidth1, 7, $criteria['num'], 1, 1, 'L');
         }
 
-        $startX += $checkboxWidth + $labelWidth + $checkboxMargin;
-    }
-    
-    // Score ranges - smaller font and spacing
-    $pdf->SetY($pdf->GetY() + $checkboxWidth + 2); // Reduced spacing
-    $pdf->SetFont('aealarabiya', '', 8); // Smaller font
-    $startX = $margin + ($pageWidth - $totalWidth) / 2;
-    
-    foreach ($grades as $grade => $range) {
-        $rangeText = '';
-        if ($grade == 'ممتاز') {
-            $rangeText = $range[0] . ' ≤ نقطة < ' . $range[1];
-        } else if ($grade == 'ضعيف') {
-            $rangeText = 'نقطة < ' . $range[1];
-        } else {
-            $rangeText = $range[0] . ' ≤ نقطة < ' . $range[1];
-        }
+        // Total row
+        $pdf->SetX($margin + $tableMargin);
+        $pdf->SetFont('aealarabiya', '', 10);
         
-        $pdf->SetX($startX);
-        $pdf->Cell($checkboxWidth + $labelWidth + $checkboxMargin, 4, $rangeText, 0, 0, 'C');
-        $startX += $checkboxWidth + $labelWidth + $checkboxMargin;
-    }
-    
-    // Section 4: معدل النقط المحصل عليها (Average score)
-    $pdf->SetY($pdf->GetY() + 10);
-    $pdf->SetFont('aealarabiya', 'B', 12);
-    $pdf->Cell(0, 6, "4- معدل النقط المحصل عليها", 0, 1, 'R');
-    
-    // Draw rectangle for average score section
-    $avgY = $pdf->GetY();
-    $pdf->Rect($margin, $avgY, $pageWidth, 35);
-    
-    // Get previous scores (last 5 years)
-    $previousNotes = $employee->notes()
-    ->where('id', '!=', $employeeNote->id)
-    ->where('year', '<=', $year)
-    ->orderBy('year', 'asc') 
-    ->limit(4)
-    ->get();
-
-    // Prepare the PDF
-    $pdf->SetY($avgY + 3);
-    $pdf->SetFont('aealarabiya', '', 10);
-    $pdf->Cell($pageWidth - 10, 6, 'تذكر بمعدل النقط المحصل عليها خلال السنوات المطلوبة للترقية في الرتبة :', 0, 1, 'R');
-
-    // Initialize total and count
-    $totalPreviousScores = 0;
-    $scoreCount = 0;
-
-    // Arabic ordinals
-    $arabicOrdinals = ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة'];
-    $index = 0;
-
-    // Display previous years
-    foreach ($previousNotes as $prevNote) {
-        $pdf->SetX($margin + 20);
-        $ordinal = isset($arabicOrdinals[$index]) ? $arabicOrdinals[$index] : 'لاحقة';
-        $pdf->Cell($pageWidth - 30, 5, "- نقطة السنة " . $ordinal . " : " . $prevNote->total_score, 0, 1, 'R');
-        $totalPreviousScores += $prevNote->total_score;
-        $scoreCount++;
-        $index++;
-    }
-
-    // Display current year's note
-    $pdf->SetX($margin + 20);
-    $pdf->Cell($pageWidth - 30, 5, "- نقطة لسنة " . $year . " : " . $totalScore, 0, 1, 'R');
-
-    // Add current year to calculation
-    $totalPreviousScores += $totalScore;
-    $scoreCount++;
-
-    // Calculate average
-    $average = $scoreCount > 0 ? round($totalPreviousScores / $scoreCount, 2) : 0;
-
-    // Display average
-    $pdf->SetX($margin + 20);
-    $pdf->Cell($pageWidth - 30, 5, "معدل النقط المحصل عليها : " . $average, 0, 1, 'R');
-    // Section 5: نسق الترقية في الرتبة (Promotion pace)
-    $pdf->SetY($pdf->GetY() + 4 ); // Further reduced from 3 to 2
-    $pdf->SetFont('aealarabiya', 'B', 12); // Smaller font
-    $pdf->Cell(0, 6, "5- نسق الترقية في الرتبة", 0, 1, 'R');
-    
-    // Draw rectangle for promotion pace section
-    $paceY = $pdf->GetY();
-    $pdf->Rect($margin, $paceY , $pageWidth, 20); // Reduced height
-    
-    // Promotion pace checkboxes
-    $pdf->SetY($paceY + 3); // Reduced spacing
-    $pdf->SetFont('aealarabiya', '', 10); // Smaller font
-    
-    // Define promotion paces and their score ranges
-    $paces = [
-        'سريع' => [16, 20],
-        'متوسط' => [10, 16],
-        'بطيء' => [0, 10]
-    ];
-    
-    // Calculate checkbox positions for promotion pace - SMALLER CHECKBOXES
-    $totalPaceWidth = ($checkboxWidth + $labelWidth + $checkboxMargin) * count($paces);
-    $startX = $margin + ($pageWidth - $totalPaceWidth) / 2;
-    
-    // Draw checkboxes and labels for promotion pace
-    foreach ($paces as $pace => $range) {
-        $pdf->SetX($startX);
-        $pdf->Rect($startX, $pdf->GetY(), $checkboxWidth, $checkboxWidth);
+        $pdf->Cell($colWidth5 + $colWidth4 + $colWidth3, 7, $totalScore . '/20', 1, 0, 'C'); // تقليل ارتفاع الخلية من 8 إلى 7
+        $pdf->Cell($colWidth2 + $colWidth1, 7, 'مجموع النقط الجزئية (من 0 إلى 20 )', 1, 1, 'R');
         
-        // Check the box if this is the current promotion pace
-        if (($totalScore >= $range[0] && $totalScore < $range[1]) || 
-            ($pace == 'سريع' && $totalScore == 20)) {
+        // Section 3: الميـــــــزة الممنوحــــــة (Grade)
+        $pdf->SetY($pdf->GetY() + 4); // Further reduced from 3 to 2
+        $pdf->SetFont('aealarabiya', 'B', 12); // Smaller font
+        $pdf->Cell(0, 6, "3- الميــــــزة الممنوحــــــة", 0, 1, 'R');
+        
+        // Draw rectangle for grade section
+        $gradeY = $pdf->GetY();
+        $pdf->Rect($margin, $gradeY + 1, $pageWidth, 20); // Reduced height
+        
+        // Grade checkboxes
+        $pdf->SetY($gradeY + 4); // Reduced spacing
+        $pdf->SetFont('aealarabiya', '', 10); // Smaller font
+        
+        // Define grades and their score ranges
+        $grades = [
+            'ضعيف' => [0, 10],
+            'متوسط' => [10, 14],
+            'جيد' => [14, 16],
+            'جيد جدا' => [16, 18],
+            'ممتاز' => [18, 20],
+        
+        ];
+        
+        // Calculate checkbox positions - SMALLER CHECKBOXES
+        $checkboxWidth = 6; // Reduced from 10
+        $checkboxMargin = 3; // Reduced from 5
+        $labelWidth = 25; // Reduced from 30
+        $totalWidth = ($checkboxWidth + $labelWidth + $checkboxMargin) * count($grades);
+        $startX = $margin + ($pageWidth - $totalWidth) / 2;
+        
+        // Draw checkboxes and labels
+        foreach ($grades as $grade => $range) {
+            $pdf->SetX($startX + $checkboxWidth + 1);
+            $pdf->SetX($startX);
+            $pdf->Cell($labelWidth, $checkboxWidth, $grade, 0, 0, 'R');
+          
+            $pdf->Rect($startX, $pdf->GetY(), $checkboxWidth, $checkboxWidth);
+            
+            // Check the box if this is the current grade
+            if (($totalScore >= $range[0] && $totalScore < $range[1]) || 
+                ($grade == 'ممتاز' && $totalScore == 20)) {
                 $pdf->SetFillColor(0, 0, 0);
                 $pdf->Rect($startX + ($checkboxWidth/4), $pdf->GetY() + ($checkboxWidth/4), $checkboxWidth/2, $checkboxWidth/2, 'F');
-        }
-        
-        $pdf->SetX($startX + $checkboxWidth + 1);
-        $pdf->Cell($labelWidth, $checkboxWidth, $pace, 0, 0, 'R');
-        $startX += $checkboxWidth + $labelWidth + $checkboxMargin;
-    }
-    
-    // Score ranges for promotion pace - smaller font
-    $pdf->SetY($pdf->GetY() + $checkboxWidth + 2); // Reduced spacing
-    $pdf->SetFont('aealarabiya', '', 8); // Smaller font
-    $startX = $margin + ($pageWidth - $totalPaceWidth) / 2;
-    
-    foreach ($paces as $pace => $range) {
-        $rangeText = '';
-        if ($pace == 'سريع') {
-            $rangeText = $range[0] . ' ≤ نقطة';
-        } else if ($pace == 'بطيء') {
-            $rangeText = 'نقطة < ' . $range[1];
-        } else {
-            $rangeText = $range[0] . ' ≤ نقطة < ' . $range[1];
-        }
-        
-        $pdf->SetX($startX);
-        $pdf->Cell($checkboxWidth + $labelWidth + $checkboxMargin, 4, $rangeText, 0, 0, 'C');
-        $startX += $checkboxWidth + $labelWidth + $checkboxMargin;
-    }
-    
-    // Signature section - more compact
-    $pdf->SetY($pdf->GetY() + 10); // Reduced from 8 to 6
-    $pdf->SetFont('aealarabiya', '', 10); // Smaller font
-    $pdf->Cell($pageWidth / 2, 6, "توقيع الإدارة أو السلطة المفوض لها:", 0, 0, 'R');
-    $pdf->Cell($pageWidth / 2, 6, "حرر بـ:", 0, 1, 'R');
-    
-    // Output PDF
-    return $pdf->Output('evaluation.pdf', 'I');
-}
+            }
 
-// Helper method to convert numbers to Arabic ordinals
-private function getArabicOrdinal($number) {
-    $ordinals = [
-        1 => 'الأولى',
-        2 => 'الثانية',
-        3 => 'الثالثة',
-        4 => 'الرابعة',
-        5 => 'الخامسة',
-        6 => 'السادسة'
-    ];
-    
-    return isset($ordinals[$number]) ? $ordinals[$number] : $number;
-}
+            $startX += $checkboxWidth + $labelWidth + $checkboxMargin;
+        }
+        
+        // Score ranges - smaller font and spacing
+        $pdf->SetY($pdf->GetY() + $checkboxWidth + 2); // Reduced spacing
+        $pdf->SetFont('aealarabiya', '', 8); // Smaller font
+        $startX = $margin + ($pageWidth - $totalWidth) / 2;
+        
+        foreach ($grades as $grade => $range) {
+            $rangeText = '';
+            if ($grade == 'ممتاز') {
+                $rangeText = $range[0] . ' =< نقطة < ' . $range[1];
+            } else if ($grade == 'ضعيف') {
+                $rangeText = 'نقطة < ' . $range[1];
+            } else {
+                $rangeText = $range[0] . ' =< نقطة < ' . $range[1];
+            }
+            
+            $pdf->SetX($startX);
+            $pdf->Cell($checkboxWidth + $labelWidth + $checkboxMargin, 4, $rangeText, 0, 0, 'C');
+            $startX += $checkboxWidth + $labelWidth + $checkboxMargin;
+        }
+        
+        // Section 4: معدل النقط المحصل عليها (Average score)
+        $pdf->SetY($pdf->GetY() + 10);
+        $pdf->SetFont('aealarabiya', 'B', 12);
+        $pdf->Cell(0, 6, "4- معدل النقط المحصل عليها", 0, 1, 'R');
+        
+        // Draw rectangle for average score section
+        $avgY = $pdf->GetY();
+        
+        // Get previous scores (last 5 years)
+        $previousNotes = $employee->notes()
+            ->where('id', '!=', $employeeNote->id)
+            ->where('year', '<=', $year)
+            ->orderBy('year', 'asc') 
+            ->limit(4)
+            ->get();
+
+        // Calculate dynamic height based on number of notes
+        $notesCount = $previousNotes->count();
+        $rowsNeeded = max(1, ceil($notesCount / 3)); // Minimum 1 row, 3 notes per row
+        $rowHeight = 7; // Height per row
+        $headerHeight = 6; // Height for header text
+        $footerHeight = 12; // Height for average and spacing
+        $minSectionHeight = 35; // Minimum section height for 1-2 notes
+        $sectionHeight = max($minSectionHeight, ($rowsNeeded * $rowHeight) + $headerHeight + $footerHeight);
+        
+        // Draw rectangle with dynamic height
+        $pdf->Rect($margin, $avgY, $pageWidth, $sectionHeight);
+
+        // Prepare the PDF
+        $pdf->SetY($avgY + 3);
+        $pdf->SetFont('aealarabiya', '', 10);
+        $pdf->Cell($pageWidth - 10, 6, 'تذكر بمعدل النقط المحصل عليها خلال السنوات المطلوبة للترقية في الرتبة :', 0, 1, 'R');
+
+        // Initialize total and count
+        $totalPreviousScores = 0;
+        $scoreCount = 0;
+
+        // Arabic ordinals
+        $arabicOrdinals = ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة'];
+        // Display previous years
+        $pdf->SetRTL(true);
+        $rowCount = 0;
+        $index = 0;
+        // Add current year to the notes array
+        $allNotes = $previousNotes->push((object)[
+            'total_score' => $totalScore,
+            'year' => $year
+        ]);
+
+        foreach ($allNotes as $note) {
+            if ($rowCount % 3 == 0) {
+                // Start new row
+                if ($rowCount > 0) {
+                    $pdf->Ln();
+                }
+                $pdf->SetX($margin + 5);
+            }
+        
+            if ($note->year == $year) {
+                // Current year note
+                $pdf->Cell(60, 7, "- نقطة لسنة " . $note->year . " : " . $note->total_score, 0, 0, 'R');
+            } else {
+                // Previous years notes
+                $ordinal = isset($arabicOrdinals[$index]) ? $arabicOrdinals[$index] : 'لاحقة';
+                $pdf->Cell(60, 7, "- نقطة السنة " . $ordinal . " : " . $note->total_score, 0, 0, 'R');
+                $index++;
+            }
+            
+            $totalPreviousScores += $note->total_score;
+            $scoreCount++;
+            $rowCount++;
+        }
+
+        // Calculate remaining vertical space
+        $currentY = $pdf->GetY();
+        $remainingSpace = ($avgY + $sectionHeight - 15) - $currentY;
+
+        // Calculate average
+        $average = $scoreCount > 0 ? round($totalPreviousScores / $scoreCount, 2) : 0;
+        
+        // Display average with dynamic positioning
+        $pdf->SetY($avgY + $sectionHeight - 12);
+        $pdf->Cell($pageWidth - 30, 5, "معدل النقط المحصل عليها : " . $average, 0, 1, 'R');
+
+        // Section 5: نسق الترقية في الرتبة (Promotion pace)
+        $pdf->SetY($avgY + $sectionHeight + 2);
+        $pdf->SetRTL(false);
+        $pdf->SetFont('aealarabiya', 'B', 12);
+        $pdf->Cell(0, 6, "5- نسق الترقية في الرتبة", 0, 1, 'R');
+        
+        // Draw rectangle for promotion pace section
+        $paceY = $pdf->GetY();
+        $pdf->Rect($margin, $paceY , $pageWidth, 20); // Reduced height
+        
+        // Promotion pace checkboxes
+        $pdf->SetY($paceY + 3); // Reduced spacing
+        $pdf->SetFont('aealarabiya', '', 10); // Smaller font
+        
+        // Define promotion paces and their score ranges
+        $paces = [
+            'بطيء' => [0, 10],
+            'متوسط' => [10, 16],
+            'سريع' => [16, 20],
+            
+        ];
+        
+        // Calculate checkbox positions for promotion pace - SMALLER CHECKBOXES
+        $totalPaceWidth = ($checkboxWidth + $labelWidth + $checkboxMargin) * count($paces);
+        $startX = $margin + ($pageWidth - $totalPaceWidth) / 2;
+        
+        // Draw checkboxes and labels for promotion pace
+        foreach ($paces as $pace => $range) {
+            $pdf->SetX($startX + $checkboxWidth + 1);
+            $pdf->SetX($startX);
+            $pdf->Cell($labelWidth, $checkboxWidth, $pace, 0, 0, 'R');
+            $pdf->Rect($startX, $pdf->GetY(), $checkboxWidth, $checkboxWidth);
+            
+            // Check the box if this is the current promotion pace
+            if (($totalScore >= $range[0] && $totalScore < $range[1]) || 
+                ($pace == 'سريع' && $totalScore == 20)) {
+                    $pdf->SetFillColor(0, 0, 0);
+                    $pdf->Rect($startX + ($checkboxWidth/4), $pdf->GetY() + ($checkboxWidth/4), $checkboxWidth/2, $checkboxWidth/2, 'F');
+            }
+            
+           
+            $startX += $checkboxWidth + $labelWidth + $checkboxMargin;
+        }
+        
+        // Score ranges for promotion pace - smaller font
+        $pdf->SetY($pdf->GetY() + $checkboxWidth + 2); // Reduced spacing
+        $pdf->SetFont('aealarabiya', '', 8); // Smaller font
+        $startX = $margin + ($pageWidth - $totalPaceWidth) / 2;
+        
+        foreach ($paces as $pace => $range) {
+            $rangeText = '';
+            if ($pace == 'سريع') {
+                $rangeText = $range[0] . ' =< نقطة';
+            } else if ($pace == 'بطيء') {
+                $rangeText = 'نقطة < ' . $range[1];
+            } else {
+                $rangeText = $range[0] . ' =< نقطة < ' . $range[1];
+            }
+            
+            $pdf->SetX($startX);
+            $pdf->Cell($checkboxWidth + $labelWidth + $checkboxMargin, 4, $rangeText, 0, 0, 'C');
+            $startX += $checkboxWidth + $labelWidth + $checkboxMargin;
+        }
+        
+        // Signature section - more compact
+        $pdf->SetY($pdf->GetY() + 10); // Reduced from 8 to 6
+        $pdf->SetFont('aealarabiya', '', 10); // Smaller font
+        $pdf->Cell($pageWidth / 2, 6, "توقيع الإدارة أو السلطة المفوض لها:", 0, 0, 'R');
+        $pdf->Cell($pageWidth / 2, 6, "حرر بـ:", 0, 1, 'R');
+        
+        // Output PDF
+        return $pdf->Output('evaluation.pdf', 'I');
+    }
+
+    // Helper method to convert numbers to Arabic ordinals
+    private function getArabicOrdinal($number) {
+        $ordinals = [
+            1 => 'الأولى',
+            2 => 'الثانية',
+            3 => 'الثالثة',
+            4 => 'الرابعة',
+            5 => 'الخامسة',
+            6 => 'السادسة'
+        ];
+        
+        return isset($ordinals[$number]) ? $ordinals[$number] : $number;
+    }
 
 }

@@ -4,6 +4,7 @@ import { PencilIcon, TrashIcon, PlusIcon, ArrowDownTrayIcon } from '@heroicons/r
 import Create from './Create';
 import Import from './Import';
 import Edit from './Edit';
+import { Button } from '@/components/ui/button';
 
 // Update the Employee interface
 interface Employee {
@@ -27,9 +28,12 @@ interface Props {
     employees: {
         data: Employee[];
     };
+    import_errors: any;
+    success:any;
 }
 
-export default function Index({ auth, employees }: Props) {
+export default function Index({ auth, employees,import_errors ,success }: Props) {
+   
     const handleDelete = (id: number) => {
         if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) {
             router.delete(route('employees.destroy', id), {
@@ -37,6 +41,9 @@ export default function Index({ auth, employees }: Props) {
             });
         }
     };
+    if(import_errors || success){
+       window.location.href = '/employees';
+    }
 
     return (
         <AuthenticatedLayout
@@ -47,6 +54,21 @@ export default function Index({ auth, employees }: Props) {
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    {import_errors && 
+                     import_errors.map((error:any) => (
+                        <div key={error.row} className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                            <span className="block sm:inline">{error}</span>
+                        </div>
+
+                     ))
+                    }
+                    {success && (
+                        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                            <strong className="font-bold">تم بنجاح!</strong>
+                            <span className="block sm:inline">تم استيراد الملف بنجاح.</span>
+                        </div> 
+                    )}
+                
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900">
                             <div className="flex justify-end mb-6">
@@ -100,7 +122,7 @@ export default function Index({ auth, employees }: Props) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {employees.data.map((employee) => (
+                                        {employees?.data.map((employee) => (
                                             <tr key={employee.id}>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">{employee.nom_famille}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">{employee.prenom}</td>
@@ -115,12 +137,15 @@ export default function Index({ auth, employees }: Props) {
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center space-x-2">
                                                         <Edit employee={employee} />
-                                                        <button
-                                                            onClick={() => handleDelete(employee.id)}
-                                                            className="text-red-600 hover:text-red-900"
-                                                        >
-                                                            <TrashIcon className="w-5 h-5" />
-                                                        </button>
+                                                            <Button 
+                                                                    variant="ghost" 
+                                                                    size="sm" 
+                                                                    className="text-red-500 hover:text-red-600 hover:bg-red-100"
+                                                                    onClick={() => handleDelete(employee.id)}
+                                                                >
+                                                                    <TrashIcon className="w-4 h-4" />
+                                                                </Button>
+                                                           
                                                     </div>
                                                 </td>
                                             </tr>

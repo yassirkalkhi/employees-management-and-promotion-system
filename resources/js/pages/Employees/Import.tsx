@@ -14,7 +14,6 @@ interface ImportError {
 export default function Import() {
     const [errors, setErrors] = useState<ImportError[]>([]);
     const [processing, setProcessing] = useState(false);
-    const { post } = useForm();
 
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -34,12 +33,20 @@ export default function Import() {
             return;
         }
 
+        const formData = new FormData();
+        formData.append('file', file);
+
         try {
-            console.log(file)
-            router.post(route('employees.import'),{file : file})
-
-         
-
+            router.post(route('employees.import'), formData, {
+                onSuccess: () => {
+                    setProcessing(false);
+                },
+                onError: (errors) => {
+                    setErrors([{ row: 0, errors: [errors.message || 'حدث خطأ أثناء الاستيراد'] }]);
+                    setProcessing(false);
+                },
+                preserveScroll: true,
+            });
         } catch (error) {
             setErrors([{ row: 0, errors: ['حدث خطأ أثناء قراءة الملف'] }]);
             setProcessing(false);
@@ -49,7 +56,7 @@ export default function Import() {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button  size="sm" className="inline-flex items-center hover:bg-blue-100 transition-all">
+                <Button  variant={"outline"} size="sm" className="inline-flex border-0 items-center  transition-all">
                     <ArrowUpTrayIcon className="w-4 h-4 ml-1" />
                     استيراد من Excel
                 </Button>

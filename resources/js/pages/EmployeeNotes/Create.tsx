@@ -147,12 +147,12 @@ export default function Create({ auth, employee, availableYears = [] }: Props) {
                                     onValueChange={(value) => setData('year', Number(value))}
                                     required
                                 >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select year" />
+                                    <SelectTrigger className=' text-gray-700'>
+                                        <SelectValue placeholder="Select year" className=' text-gray-700'/>
                                     </SelectTrigger>
                                     <SelectContent>
                                         {availableYears && Object.values(availableYears).map((year) => (
-                                            <SelectItem key={year} value={year.toString()} >
+                                            <SelectItem className='text-gray-700' key={year} value={year.toString()} >
                                                 {year}
                                             </SelectItem>
                                         ))}

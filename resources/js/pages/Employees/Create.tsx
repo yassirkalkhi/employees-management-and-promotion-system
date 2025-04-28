@@ -84,7 +84,7 @@ export default function Create() {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="default" size="sm" className="inline-flex items-center hover:bg-blue-100">
+                <Button variant="default" size="sm" className="inline-flex bg-blue-500 items-center hover:bg-blue-600">
                     <PlusIcon className="w-4 h-4 ml-1" />
                     إضافة موظف
                 </Button>
@@ -180,7 +180,7 @@ export default function Create() {
                                         onValueChange={(value) => setData('situation_familiale', value)}
                                         required
                                     >
-                                        <SelectTrigger className="bg-white">
+                                        <SelectTrigger className="bg-white text-gray-700">
                                             <SelectValue placeholder="اختر الحالة العائلية" className="text-gray-700" />
                                         </SelectTrigger>
                                         <SelectContent className="bg-white">

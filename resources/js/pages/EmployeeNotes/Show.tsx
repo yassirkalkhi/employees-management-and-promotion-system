@@ -76,7 +76,7 @@ export default function Show({ auth, employee, notes }: Props) {
                                         </Button>
                                     </Link>
                                     <Link href={route('employee-notes.index')}>
-                                        <Button className="inline-flex items-center hover:bg-blue-100 transition-all text-gray-700">
+                                        <Button variant={'outline'} className="inline-flex items-center border-0  transition-all text-gray-700">
                                             <ArrowRightIcon className="w-4 h-4 ml-1" />
                                             العودة إلى القائمة
                                         </Button>
@@ -88,7 +88,7 @@ export default function Show({ auth, employee, notes }: Props) {
                                 <div className="text-center py-8">
                                     <p className="text-gray-500">لا توجد بطاقات تنقيط لهذا الموظف</p>
                                     <Link href={route('employee-notes.create', employee.id)}>
-                                        <Button  className="mt-4 hover:bg-blue-100 transition-all text-gray-700">
+                                        <Button variant={'outline'} className="mt-4  transition-all text-gray-700">
                                             إضافة أول بطاقة تنقيط
                                         </Button>
                                     </Link>
@@ -165,8 +165,9 @@ export default function Show({ auth, employee, notes }: Props) {
                                                  <td className="px-6 py-4 whitespace-nowrap text-right">
                                                  <div className="flex items-center space-x-2">
                                                                 <Link href={route('employee-notes.edit', [employee.id, note.id])}>
-                                                                    <Button variant="ghost" size="sm" className="text-accent/50 hover:text-accent hover:bg-accent/10">
+                                                                    <Button variant="default" size="sm" className="text-gray-700 bg-white shadow-none  hover:text-gray-800 hover:bg-accent/30">
                                                                         <PencilIcon className="w-4 h-4" />
+                                                                        
                                                                     </Button>
                                                                 </Link>
                                                                 <Button 

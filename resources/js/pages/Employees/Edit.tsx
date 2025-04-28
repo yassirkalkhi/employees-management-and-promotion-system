@@ -112,7 +112,10 @@ export default function Edit({ employee }: EditProps) {
         <Dialog>
             <DialogTrigger asChild>
                 <button className="text-indigo-600 hover:text-indigo-900">
-                    <PencilIcon className="w-5 h-5" />
+                    <Button variant="default" size="sm" className="text-gray-700 bg-white shadow-none  hover:text-gray-800 hover:bg-accent/30">
+                        <PencilIcon className="w-4 h-4" />
+                        
+                    </Button>
                 </button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[1000px] bg-white max-h-[90vh] overflow-y-auto" dir="rtl">
@@ -206,7 +209,7 @@ export default function Edit({ employee }: EditProps) {
                                         onValueChange={(value) => setData('situation_familiale', value)}
                                         required
                                     >
-                                        <SelectTrigger className="bg-white">
+                                        <SelectTrigger className="bg-white text-gray-700">
                                             <SelectValue placeholder="اختر الحالة العائلية" className="text-gray-700" />
                                         </SelectTrigger>
                                         <SelectContent className="bg-white">
@@ -348,9 +351,9 @@ export default function Edit({ employee }: EditProps) {
 
                     <div className="flex justify-end space-x-2">
                         <DialogClose asChild>
-                            <Button ref={closeRef} type="button" >إلغاء</Button>
+                            <Button variant={"outline"} ref={closeRef} type="button" >إلغاء</Button>
                         </DialogClose>
-                        <Button type="submit" variant="outline" className="bg-blue-500 hover:bg-blue-600 border-0" disabled={processing}>حفظ التغييرات</Button>
+                        <Button type="submit" variant="outline" className="bg-blue-500 text-white hover:text-white hover:bg-blue-600 border-0" disabled={processing}>حفظ التغييرات</Button>
                     </div>
                 </form>
             </DialogContent>

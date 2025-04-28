@@ -27,6 +27,9 @@ Route::resource('employees', EmployeeController::class)
     
 Route::post('/employees/import', [ImportController::class, 'import'])->name('employees.import');
 
+// Add this route with the existing employee routes
+Route::get('/employees/import/results', [ImportController::class, 'results'])->name('import.results');
+
 // مسارات بطاقات التنقيط
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/employee-notes', [EmployeeNoteController::class, 'index'])->name('employee-notes.index');

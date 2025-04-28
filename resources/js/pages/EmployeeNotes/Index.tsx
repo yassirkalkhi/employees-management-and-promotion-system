@@ -62,7 +62,7 @@ export default function Index({ auth, employees }: Props) {
                                                 <td>
                                                 <div className="flex items-center space-x-2">
                                                         <Link href={route('employee-notes.show', employee.id)}>
-                                                            <Button variant="outline" size="sm" className="inline-flex items-center bg-blue-500 hover:bg-blue-600 border-0 transition-all text-white">
+                                                            <Button variant="outline" size="sm" className="inline-flex items-center hover:text-gray-200 bg-blue-500 hover:bg-blue-600 border-0 transition-all text-white">
                                                                 <StarIcon className="w-4 h-4 ml-1" />
                                                                 بطاقات التنقيط
                                                             </Button>
