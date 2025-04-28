@@ -26,7 +26,7 @@ export default function ImportResult({ auth, success, import_errors }: Props) {
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-lg font-medium text-gray-900">نتائج استيراد الموظفين</h3>
                             <Link href={route('employees.index')}>
-                                <Button variant={"outline"} className="flex  border-0 items-center gap-2">
+                                <Button variant={"default"} className="flex   border-0 items-center gap-2">
                                     <ArrowLeftIcon className="h-4 w-4" />
                                     العودة إلى قائمة الموظفين
                                 </Button>

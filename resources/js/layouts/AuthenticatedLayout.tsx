@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { Menu } from 'lucide-react';
 
 export default function Authenticated({ user, header, children } : any) {
-    const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
+    const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(true);
 
     return (
         <div className="min-h-screen bg-gray-100" dir="rtl">
@@ -79,8 +79,8 @@ export default function Authenticated({ user, header, children } : any) {
                         <div className="hidden sm:flex sm:items-center sm:mr-6">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="flex items-center">
-                                        {user.name}
+                                    <Button variant="default" className="flex items-center">
+                                        {user.email}
                                         <svg
                                             className="mr-2 -ml-0.5 h-4 w-4"
                                             xmlns="http://www.w3.org/2000/svg"
@@ -95,7 +95,7 @@ export default function Authenticated({ user, header, children } : any) {
                                         </svg>
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
+                                <DropdownMenuContent align="end" className='bg-white border-0 text-gray-700'>
                                     <DropdownMenuItem asChild>
                                         <Link href={route('profile.edit')} className="w-full">
                                             الملف الشخصي
@@ -112,63 +112,12 @@ export default function Authenticated({ user, header, children } : any) {
 
                         <div className="-ml-2 flex items-center sm:hidden">
                             <Button
-                                variant="ghost"
+                                variant="destructive"
                                 size="icon"
                                 onClick={() => setShowingNavigationDropdown((previousState) => !previousState)}
-                            >
+                            >d
                                 <Menu className="h-6 w-6" />
                             </Button>
-                        </div>
-                    </div>
-                </div>
-
-                <div className={(showingNavigationDropdown ? 'block' : 'hidden') + ' sm:hidden'}>
-                    <div className="pt-2 pb-3 space-y-1">
-                        <Link
-                            href={route('dashboard')}
-                            className={cn(
-                                'block w-full pr-3 pl-4 py-2 border-l-4 text-right text-base font-medium transition duration-150 ease-in-out',
-                                route().current('dashboard')
-                                    ? 'border-indigo-400 text-indigo-700 bg-indigo-50'
-                                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300'
-                            )}
-                        >
-                            لوحة التحكم
-                        </Link>
-                        <Link
-                            href={route('employees.index')}
-                            className={cn(
-                                'block w-full pr-3 pl-4 py-2 border-l-4 text-right text-base font-medium transition duration-150 ease-in-out',
-                                route().current('employees.*')
-                                    ? 'border-indigo-400 text-indigo-700 bg-indigo-50'
-                                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300'
-                            )}
-                        >
-                            الموظفين
-                        </Link>
-                    </div>
-
-                    <div className="pt-4 pb-1 border-t border-gray-200">
-                        <div className="px-4">
-                            <div className="font-medium text-base text-gray-800">{user.name}</div>
-                            <div className="font-medium text-sm text-gray-500">{user.email}</div>
-                        </div>
-
-                        <div className="mt-3 space-y-1">
-                            <Link
-                                href={route('profile.edit')}
-                                className="block w-full pr-3 pl-4 py-2 border-l-4 border-transparent text-right text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition duration-150 ease-in-out"
-                            >
-                                الملف الشخصي
-                            </Link>
-                            <Link
-                                href={route('logout')}
-                                method="post"
-                                as="button"
-                                className="block w-full pr-3 pl-4 py-2 border-l-4 border-transparent text-right text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition duration-150 ease-in-out"
-                            >
-                                تسجيل الخروج
-                            </Link>
                         </div>
                     </div>
                 </div>

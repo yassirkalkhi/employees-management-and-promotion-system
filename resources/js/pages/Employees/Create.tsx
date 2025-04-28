@@ -84,7 +84,7 @@ export default function Create() {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="default" size="sm" className="inline-flex bg-blue-500 items-center hover:bg-blue-600">
+                <Button variant="default" size="sm" className="inline-flex text-white bg-blue-500 items-center hover:bg-blue-600">
                     <PlusIcon className="w-4 h-4 ml-1" />
                     إضافة موظف
                 </Button>

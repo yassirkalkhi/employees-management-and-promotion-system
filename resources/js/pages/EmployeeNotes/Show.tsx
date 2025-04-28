@@ -76,7 +76,7 @@ export default function Show({ auth, employee, notes }: Props) {
                                         </Button>
                                     </Link>
                                     <Link href={route('employee-notes.index')}>
-                                        <Button variant={'outline'} className="inline-flex items-center border-0  transition-all text-gray-700">
+                                        <Button variant={'default'} className="inline-flex items-center border-0  transition-all text-gray-700">
                                             <ArrowRightIcon className="w-4 h-4 ml-1" />
                                             العودة إلى القائمة
                                         </Button>

@@ -60,7 +60,7 @@ export default function Index({ auth, employees }: Props) {
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <Button
                                                         onClick={() => generateReport(employee.id)}
-                                                        variant="outline"
+                                                        variant="default"
                                                     >
                                                         إنشاء التقرير
                                                     </Button>

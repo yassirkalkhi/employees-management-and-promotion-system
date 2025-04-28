@@ -56,7 +56,7 @@ export default function Import() {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button  variant={"outline"} size="sm" className="inline-flex border-0 items-center  transition-all">
+                <Button  variant={"default"} size="sm" className="inline-flex border-0 items-center  transition-all">
                     <ArrowUpTrayIcon className="w-4 h-4 ml-1" />
                     استيراد من Excel
                 </Button>
