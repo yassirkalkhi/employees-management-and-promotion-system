@@ -1,5 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout';
+import { Button } from '@/components/ui/button'; // Add Button import
 
 interface Employee {
     id: number;
@@ -34,6 +35,10 @@ export default function Index({ auth, employees, filters }: Props) {
         });
     };
 
+    const exportTableAsPdf = () => {
+        window.open(route('promotions.export-pdf', { grade: filters.grade || null }), '_blank');
+    };
+
     return (
         <AuthenticatedLayout user={auth.user}>
             <Head title="قائمة الترقيات المحتملة" />
@@ -53,21 +58,29 @@ export default function Index({ auth, employees, filters }: Props) {
                                     )}
                                     <span> برسم سنة {new Date().getFullYear()}</span>
                                 </h2>
-                                <div className="flex items-center gap-2">
-                                    <label htmlFor="grade-filter" className="text-sm font-medium text-gray-700">
-                                          الدرجة:
-                                    </label>
-                                    <select
-                                        id="grade-filter"
-                                        value={filters.grade || ''}
-                                        onChange={handleGradeChange}
-                                        className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                <div className="flex items-center gap-4">
+                                    <Button 
+                                        onClick={exportTableAsPdf}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white"
                                     >
-                                        <option value="">جميع الدرجات</option>
-                                        <option value="1">الدرجة 1</option>
-                                        <option value="2">الدرجة 2</option>
-                                        <option value="3">الدرجة 3</option>
-                                    </select>
+                                        تصدير كملف PDF
+                                    </Button>
+                                    <div className="flex items-center gap-2">
+                                        <label htmlFor="grade-filter" className="text-sm font-medium text-gray-700">
+                                            الدرجة:
+                                        </label>
+                                        <select
+                                            id="grade-filter"
+                                            value={filters.grade || ''}
+                                            onChange={handleGradeChange}
+                                            className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                        >
+                                            <option value="">جميع الدرجات</option>
+                                            <option value="1">الدرجة 1</option>
+                                            <option value="2">الدرجة 2</option>
+                                            <option value="3">الدرجة 3</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                             

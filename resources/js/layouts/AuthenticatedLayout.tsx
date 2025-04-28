@@ -79,7 +79,7 @@ export default function Authenticated({ user, header, children } : any) {
                         <div className="hidden sm:flex sm:items-center sm:mr-6">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="default" className="flex items-center">
+                                    <Button variant="outline" className="flex items-center">
                                         {user.email}
                                         <svg
                                             className="mr-2 -ml-0.5 h-4 w-4"

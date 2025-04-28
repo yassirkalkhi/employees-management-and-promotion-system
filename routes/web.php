@@ -39,7 +39,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/employee-notes/{employee}/{employeeNote}/export-pdf', [EmployeeNoteController::class, 'generatePDF'])->name('employee-notes.export-pdf');
     
     Route::get('/promotions', [EmployeePromotionController::class, 'index'])->name('promotions.index');
-
+    // Add this with your other promotion routes
+    Route::get('/promotions/export-pdf', [EmployeePromotionController::class, 'exportPdf'])->name('promotions.export-pdf');
     Route::get('/annual-reports', [AnnualReportController::class, 'index'])->name('annual-reports.index');
     Route::get('/annual-reports/{employee}', [AnnualReportController::class, 'generatePDF'])->name('annual-reports.generate');
 });

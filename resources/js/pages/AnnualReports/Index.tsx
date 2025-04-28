@@ -16,7 +16,6 @@ interface Props {
 }
 
 export default function Index({ auth, employees }: Props) {
-    const [selectedEmployee, setSelectedEmployee] = useState<number | null>(null);
 
     const generateReport = (employeeId: number) => {
         window.open(route('annual-reports.generate', employeeId), '_blank');
@@ -60,7 +59,7 @@ export default function Index({ auth, employees }: Props) {
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <Button
                                                         onClick={() => generateReport(employee.id)}
-                                                        variant="default"
+                                                        variant="outline"
                                                     >
                                                         إنشاء التقرير
                                                     </Button>

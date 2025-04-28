@@ -63,6 +63,132 @@ class EmployeePromotionController extends Controller
         ]);
     }
 
+    public function exportPdf(Request $request)
+    {
+        $grade = $request->input('grade');
+
+        $employees = Employee::query()
+            ->select([
+                'id',
+                'nom_famille',
+                'prenom',
+                'rang',
+                'date_effet',
+                'level',
+            ])
+            ->when($grade, function ($query) use ($grade) {
+                return $query->where('grade', $grade);
+            })
+            ->with(['latestNote'])
+            ->get()
+            ->map(function ($employee) {
+                $promotionPace = $employee->latestNote?->promotion_pace ?? 'متوسط';
+                $yearsNeeded = $this->calculateYearsNeeded($employee->rang, $promotionPace);
+                $nextGradeDate = $yearsNeeded ? 
+                    Carbon::parse($employee->date_effet)
+                        ->addYears(floor($yearsNeeded))
+                        ->addMonths(($yearsNeeded - floor($yearsNeeded)) * 12)
+                        ->format('Y-m-d') : 
+                    null;
+                   
+                return [
+                    'id' => $employee->id,
+                    'full_name' => $employee->nom_famille . ' ' . $employee->prenom,
+                    'current_grade' => $employee->rang,
+                    'effect_date' => $employee->date_effet,
+                    'next_promotion_date' => $nextGradeDate,
+                    'old_indicative_number' => $this->getIndicativeNumber($employee->level, $employee->rang),
+                    'new_indicative_number' => $this->getIndicativeNumber($employee->level, $employee->rang + 1),
+                ];
+            });
+
+        // Create new TCPDF instance
+        $pdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+        
+        // Set document information
+        $pdf->SetCreator(PDF_CREATOR);
+        $pdf->SetAuthor('نظام إدارة الموظفين والترقيات');
+        $pdf->SetTitle('جدول الترقي');
+        $pdf->SetSubject('قائمة الترقيات المحتملة');
+        
+        // Set default header data
+        $title = 'جدول الترقي';
+        if ($grade) {
+            $title .= ' في الرتبة الخاص بإطار تقني من الدرجة ' . $grade;
+        }
+        $title .= ' برسم سنة ' . date('Y');
+        
+        $pdf->SetHeaderData('', 0, $title, '');
+        
+        // Set header and footer fonts
+        $pdf->setHeaderFont(Array('aealarabiya', '', PDF_FONT_SIZE_MAIN));
+        $pdf->setFooterFont(Array('aealarabiya', '', PDF_FONT_SIZE_DATA));
+        
+        // Set default monospaced font
+        $pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+        
+        // Set margins
+        $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
+        $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
+        $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
+        
+        // Set auto page breaks
+        $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+        
+        // Set font for Arabic text
+        $pdf->SetFont('aealarabiya', '', 12);
+        
+        // Add a page
+        $pdf->AddPage();
+        
+        // RTL direction for Arabic
+        $pdf->setRTL(true);
+        
+        // Table header
+        $html = '<table border="1" cellpadding="5">
+            <thead>
+                <tr style="background-color: #CCCCCC;">
+                    <th colspan="1" rowspan="2" style="text-align: center;">الاسم الكامل</th>
+                    <th colspan="3" style="text-align: center;">الوضعية الحالية</th>
+                    <th colspan="3" style="text-align: center;">الوضعية الجديدة</th>
+                </tr>
+                <tr style="background-color: #CCCCCC;">
+                    <th style="text-align: center;">الرتبة</th>
+                    <th style="text-align: center;">الرقم الاستدلالي</th>
+                    <th style="text-align: center;">الاقدمية</th>
+                    <th style="text-align: center;">الرتبة</th>
+                    <th style="text-align: center;">الرقم الاستدلالي</th>
+                    <th style="text-align: center;">تاريخ المفعول</th>
+                </tr>
+            </thead>
+            <tbody>';
+        
+        // Table data
+        foreach ($employees as $employee) {
+            $newRank = (int)$employee['current_grade'] + 1 <= 10 
+                ? (int)$employee['current_grade'] + 1 
+                : "رتبة استثنائية";
+                
+            $html .= '<tr>
+                <td style="text-align: right;">' . $employee['full_name'] . '</td>
+                <td style="text-align: center;">' . $employee['current_grade'] . '</td>
+                <td style="text-align: center;">' . $employee['old_indicative_number'] . '</td>
+                <td style="text-align: center;">' . $employee['effect_date'] . '</td>
+                <td style="text-align: center;">' . $newRank . '</td>
+                <td style="text-align: center;">' . $employee['new_indicative_number'] . '</td>
+                <td style="text-align: center;">' . $employee['next_promotion_date'] . '</td>
+            </tr>';
+        }
+        
+        $html .= '</tbody></table>';
+        
+        // Print table on PDF
+        $pdf->writeHTML($html, true, false, true, false, '');
+        
+        // Close and output PDF
+        return $pdf->Output('promotions_list.pdf', 'I');
+    }
+
     private function calculateYearsNeeded( $currentRank,  $promotionPace): ?float
     {
         $promotionTable = [
